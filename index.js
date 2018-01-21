@@ -66,7 +66,7 @@ app.get('/gov/list', async function(req, res) {
         for (var key in obj) {
             gobj = obj[key];
             g = new Array();
-            g.push(gobj['DataHex']);
+            g.push(gobj['Hash']);
             g.push(gobj['CreationTime']);
             g.push(gobj['SigningMasternode']);
             g.push(gobj['AbsoluteYesCount']);
