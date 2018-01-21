@@ -1,0 +1,17 @@
+{
+  "name": "rpc-api",
+  "version": "1.0.0",
+  "description": "wrapper api for energi rpc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yghazi",
+  "license": "MIT",
+  "dependencies": {
+    "@energicryptocurrency/energid-rpc": "git+https://github.com/yghazi/energid-rpc.git",
+    "express": "^4.16.2",
+    "fs": "0.0.1-security",
+    "js-yaml": "^3.10.0"
+  }
+}
