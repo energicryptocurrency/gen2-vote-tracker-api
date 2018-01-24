@@ -64,15 +64,31 @@ app.get('/gov/list', async function(req, res) {
         var govArray = new Array();
         var obj = list.result
         for (var key in obj) {
+            isProposal = false
             gobj = obj[key];
             g = new Array();
-            g.push(gobj['Hash']);
+            data = gobj['DataString'];
+            json = JSON.parse(data);
+            for (var i in json) {
+                item = json[i];
+                if (item[0] == 'proposal') {
+                    isProposal = true;
+                    g.push(item[1].name);
+                    g.push(item[1].url)
+                } else 
+                    break;
+            }
+            
+            if (isProposal) {
             g.push(gobj['CreationTime']);
-            g.push(gobj['SigningMasternode']);
             g.push(gobj['AbsoluteYesCount']);
             g.push(gobj['YesCount']);
             g.push(gobj['NoCount']);
             g.push(gobj['AbstainCount']);
+            g.push(gobj['Hash']);
+            
+            } else 
+                continue;
 
             govArray.push(g);
         }
