@@ -2,5 +2,5 @@ energiRPC:
   protocol: http
   host: localhost
   port: 29796
-  user: rpcuser
+  user: user
   pass: pass

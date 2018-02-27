@@ -1,110 +1,29 @@
-var express = require('express');
-var util = require('./lib/util');
+const express = require('express')
+const util = require('./lib/util')
+const redis = require('./lib/redis')
+
 
 var app = express();
 
-app.use(function(req, res, next) {
+var superBlockCycle;
+
+app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 
-app.get('/diff', function(req, res) {
-    x = util.getDifficulty();
+app.get('/gov/list', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
-    res.status(200).send(x);
-});
-
-app.get('/mn/list', async function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    await util.getMasternodeList((err, list) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send({
-                err: err
-            })
-            return
-        }
-        var mnArray = new Array();
-        var obj = list.result
-        console.log('RESULT:' + obj);
-        for (var key in obj) {
-            str = obj[key].toString().trim();
-            str = str.split(/(\s+)/);
-            mn = new Array();
-            for (var i = 0; i < str.length; i++) {
-                if (str[i].trim().length > 0) {
-                    mn.push(str[i]);
-                }
-            }
-            mnArray.push(mn);
-        }
-
+    await redis.getProposalList((list) => {
         var data = {
-            data: mnArray,
-            error: null
+            data: list
         }
         res.status(200).send(data);
-        return;
-
-    });
-
+    })
 });
 
-app.get('/gov/list', async function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    await util.getGovernanceObjectList((err, list) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send({
-                err: err
-            })
-            return
-        }
-        var govArray = new Array();
-        var obj = list.result
-        for (var key in obj) {
-            isProposal = false
-            gobj = obj[key];
-            g = new Array();
-            data = gobj['DataString'];
-            json = JSON.parse(data);
-            for (var i in json) {
-                item = json[i];
-                if (item[0] == 'proposal') {
-                    isProposal = true;
-                    g.push(item[1].name);
-                    g.push(item[1].url)
-                } else 
-                    break;
-            }
-            
-            if (isProposal) {
-            g.push(gobj['CreationTime']);
-            g.push(gobj['AbsoluteYesCount']);
-            g.push(gobj['YesCount']);
-            g.push(gobj['NoCount']);
-            g.push(gobj['AbstainCount']);
-            g.push(gobj['Hash']);
-            
-            } else 
-                continue;
-
-            govArray.push(g);
-        }
-
-        var data = {
-            data: govArray,
-            error: null
-        }
-        res.status(200).send(data);
-        return;
-
-    });
-
-});
-
-app.get('/gov/info', async function(req, res) {
+app.get('/gov/info', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     await util.getGovernanceInfo((err, info) => {
         if (err) {
@@ -121,7 +40,24 @@ app.get('/gov/info', async function(req, res) {
 
 });
 
-app.get('/block/count', async function(req, res) {
+app.get('/diff', function (req, res) {
+    x = util.getDifficulty();
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send(x);
+});
+
+app.get('/mn/list', async function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    await redis.mnList((list) => {
+        var data = {
+            data: list
+        }
+        res.status(200).send(data);
+    })
+
+});
+
+app.get('/block/count', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     await util.getBlockCount((err, count) => {
         if (err) {
@@ -138,6 +74,7 @@ app.get('/block/count', async function(req, res) {
 
 });
 
-app.listen(3000, function() {
+app.listen(3000, function () {
     console.log('energi-rpc api listening on port 3000!');
+    superBlockCycle = util.getSuperBlockCycle()
 });

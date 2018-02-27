@@ -4,14 +4,18 @@
   "description": "wrapper api for energi rpc",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "yghazi",
   "license": "MIT",
   "dependencies": {
     "@energicryptocurrency/energid-rpc": "git+https://github.com/yghazi/energid-rpc.git",
+    "epoch.js": "^0.4.4",
     "express": "^4.16.2",
     "fs": "0.0.1-security",
-    "js-yaml": "^3.10.0"
+    "js-yaml": "^3.10.0",
+    "moment": "^2.20.1",
+    "redis": "^2.8.0"
   }
 }
