@@ -17,7 +17,10 @@ app.get('/gov/list', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     await redis.getProposalList((list) => {
         var data = {
-            data: list
+            data: list,
+            draw: list.length,
+            recordsTotal: list.length,
+            recordsFiltered: list.length
         }
         res.status(200).send(data);
     })
@@ -50,7 +53,10 @@ app.get('/mn/list', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     await redis.mnList((list) => {
         var data = {
-            data: list
+            data: list,
+            draw: list.length,
+            recordsTotal: list.length,
+            recordsFiltered: list.length
         }
         res.status(200).send(data);
     })
@@ -78,3 +84,4 @@ app.listen(3000, function () {
     console.log('energi-rpc api listening on port 3000!');
     superBlockCycle = util.getSuperBlockCycle()
 });
+
