@@ -15,12 +15,11 @@ app.use(function (req, res, next) {
 
 app.get('/gov/list', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
-    await redis.getProposalList((list) => {
+    await redis.getProposalList(req.query.start, req.query.length, (total, list) => {
         var data = {
             data: list,
-            draw: list.length,
-            recordsTotal: list.length,
-            recordsFiltered: list.length
+            recordsTotal: total,
+            recordsFiltered: total
         }
         res.status(200).send(data);
     })
@@ -51,12 +50,11 @@ app.get('/diff', function (req, res) {
 
 app.get('/mn/list', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
-    await redis.mnList((list) => {
+    await redis.getMasternodeList(req.query.start, req.query.length, (total, list) => {
         var data = {
             data: list,
-            draw: list.length,
-            recordsTotal: list.length,
-            recordsFiltered: list.length
+            recordsTotal: total,
+            recordsFiltered: total
         }
         res.status(200).send(data);
     })

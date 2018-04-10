@@ -2,16 +2,19 @@ const redis = require("redis"),
     client = redis.createClient();
 const energiUtil = require('../lib/util.js')
 const moment = require('moment')
+const prettySeconds = require('pretty-seconds');
+const cron = require('node-cron');
 
 const proposalKey = 'proposal'
-const masternodeKey = 'masternode' 
 const proposalTimeSet = 'proposal:time'
+const masternodeKey = 'mn'
+const masternodeSet = 'mn:set'
 
 client.on("error", function (err) {
     console.error("Error " + err);
 });
 
-var superBlockCycle = energiUtil.getSuperBlockCycle()
+const superBlockCycle = energiUtil.getSuperBlockCycle()
 
 function populateProposalList() {
     energiUtil.getGovernanceObjectList((err, list) => {
@@ -32,12 +35,13 @@ function populateProposalList() {
                     item = json[i];
                     if (item[0] == 'proposal') {
                         isProposal = true;
+                        let num = (item[1].end_epoch - item[1].start_epoch) / superBlockCycle
                         g.push(item[1].name + ' ' + '(<a href="' + item[1].url + '">Details</a>)')
-                        g.push(item[1].payment_amount)
-                        g.push((item[1].end_epoch - item[1].start_epoch) / superBlockCycle)
-                        let d = new Date(item[1].start_epoch)*1000
+                        g.push(parseInt(item[1].payment_amount) * num)
+                        g.push(num)
+                        let d = new Date(item[1].start_epoch) * 1000
                         g.push(moment(d).utc().toString())
-                        d = new Date(item[1].end_epoch)*1000
+                        d = new Date(item[1].end_epoch) * 1000
                         g.push(moment(d).utc().toString())
                     } else
                         return
@@ -49,7 +53,7 @@ function populateProposalList() {
                 g.push(gobj['NoCount'])
                 g.push(gobj['AbstainCount'])
                 g.push(gobj['Hash'])
-                multi.hset('proposal:' + gobj['Hash'], 'list', g.toString(), redis.print)
+                multi.hset(proposalKey + ':' + gobj['Hash'], 'list', g.toString(), redis.print)
                 multi.zadd(proposalTimeSet, item[1].start_epoch, 'proposal:' + gobj['Hash'], redis.print)
             } else
                 continue;
@@ -65,50 +69,63 @@ function populateProposalList() {
 }
 
 
-function mnList() {
+function populateMasternodeList() {
     energiUtil.getMasternodeList((err, list) => {
         if (err) {
             console.error(err);
         }
-        client.del(masternodeKey, (err, n) => {
-            var multi = client.multi()
-            var obj = list.result
-            for (var key in obj) {
-                str = obj[key].toString().trim();
-                str = str.split(/(\s+)/);
-                mn = new Array();
-                let addr = ''
-                multi.rpush(masternodeKey, str[str.length - 1])
-                for (var i = 0; i < str.length - 1; i++) {
-                    if (str[i].trim().length > 0) {
-                        // to forego the payee address
-                        if (str[i].toString().startsWith('t')) {
-                            continue
-                        }
-                        // to change epoch to date format
-                        let n = parseInt(str[i].toString())
-                        if (!isNaN(str[i]) && n > 1483228800) {
-                            let d = new Date(n)*1000
-                            multi.rpush(masternodeKey, moment(d).utc().toString());
-                            continue
-                        }
-                        multi.rpush(masternodeKey, str[i]);
+        var multi = client.multi()
+        var obj = list.result
+        var active
+        for (var key in obj) {
+            mn = new Array();
+            str = obj[key].toString().trim();
+            console.log(str)
+            str = str.split(/(\s+)/);
+            let addr = ''
+            //push ip first
+            mn.push(str[str.length - 1])
+            for (var i = 0; i < str.length - 1; i++) {
+                if (str[i].trim().length > 0) {
+                    console.log(i)
+                    // to forego the payee address
+                    if (i === 4) {
+                        continue
                     }
-                }
-                multi.rpush(masternodeKey, str[str.length - 1])
-                multi.exec(function (errors, results) {
-                    if (errors) {
-                        console.error(errors)
-                        throw errors
-                    }
-                    // console.log(results)
-                })
-            }
-        })
 
+                    // to change active seconds to readable duration 
+                    else if (i === 8) {
+                        active = str[i]
+                        mn.push(prettySeconds(parseInt(str[i])).replace(/\s/g, '').replace(/days/g, 'd').replace(/seconds/g, 's')
+                        .replace(/minutes/g, 'm').replace(/hours/g, 'h').replace(/weeks/g,'w').replace(/,|and/g,':'))
+                        continue
+                    }
+                    // to change epoch to date format
+                    else if (!isNaN(str[i]) && (n = parseInt(str[i])) && n > 1483228800) {
+                        let d = new Date(n) * 1000
+                        mn.push(moment(d).utc().toString());
+                        continue
+                    }
+                    mn.push(str[i]);
+                }
+            }
+            multi.hset(masternodeKey + ':' + key, 'list', mn.toString(), redis.print)
+            multi.zadd(masternodeSet, active, masternodeKey + ':' + key, redis.print)
+            multi.exec(function (errors, results) {
+                if (errors) {
+                    console.error(errors)
+                    throw errors
+                }
+                // console.log(results)
+            })
+        }
     });
 }
 
-populateProposalList()
-mnList()
+// scheduled job for updating data in redis
+cron.schedule('*/2 * * * *', function () {
+    populateProposalList()
+    populateMasternodeList()
+});
+
 

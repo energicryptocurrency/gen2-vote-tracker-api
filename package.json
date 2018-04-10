@@ -16,6 +16,8 @@
     "fs": "0.0.1-security",
     "js-yaml": "^3.10.0",
     "moment": "^2.20.1",
+    "node-cron": "^1.2.1",
+    "pretty-seconds": "^0.2.1",
     "redis": "^2.8.0"
   }
 }
