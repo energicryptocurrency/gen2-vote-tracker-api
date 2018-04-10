@@ -80,14 +80,12 @@ function populateMasternodeList() {
         for (var key in obj) {
             mn = new Array();
             str = obj[key].toString().trim();
-            console.log(str)
             str = str.split(/(\s+)/);
             let addr = ''
             //push ip first
             mn.push(str[str.length - 1])
             for (var i = 0; i < str.length - 1; i++) {
                 if (str[i].trim().length > 0) {
-                    console.log(i)
                     // to forego the payee address
                     if (i === 4) {
                         continue
