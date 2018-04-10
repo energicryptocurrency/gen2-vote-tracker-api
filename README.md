@@ -3,7 +3,7 @@
 These are the APIs that the Vote Tracker front-end consumes.
 
 ## Requirements
-* node
+* node (>=9.4.0)
 * redis
 * energid (with RPC enabled)
 
@@ -13,8 +13,12 @@ These are the APIs that the Vote Tracker front-end consumes.
 git clone https://github.com/energicryptocurrency/vote-tracker-api.git
 ```
 
-* Inside the clones folder, run `npm install` to install all dependencies
+* Inside the cloned folder, run `npm install` to install all dependencies
 
-* Change the configuration file, according to your network settings (Energi network type and RPC credentials)
+* Change the configuration file according to your network settings (Energi network type and RPC credentials)
 
-* Add cron/job.js script to your crontab, activate for main and/or test net, both for blocks24h and for masternode full list
+* Energi daemon should be running with RPC enabled
+
+* Make sure redis is running, and it would be a good idea to activate persistence, though not strictly required. See details [here](https://redis.io/topics/persistence)
+
+* Run `node cron/job.js` via screen, to update data for proposals and for masternode full list
