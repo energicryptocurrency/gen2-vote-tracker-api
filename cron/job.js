@@ -20,7 +20,8 @@ function populateProposalList() {
     energiUtil.getGovernanceObjectList((err, list) => {
         if (err) {
             console.error(err);
-        }
+        } 
+        else if (list )
         // var govArray = new Array();
         var multi = client.multi()
         var obj = list.result
@@ -95,7 +96,7 @@ function populateMasternodeList() {
                     else if (i === 8) {
                         active = str[i]
                         mn.push(prettySeconds(parseInt(str[i])).replace(/\s/g, '').replace(/days/g, 'd').replace(/seconds/g, 's')
-                        .replace(/minutes/g, 'm').replace(/hours/g, 'h').replace(/weeks/g,'w').replace(/,|and/g,':'))
+                            .replace(/minutes/g, 'm').replace(/hours/g, 'h').replace(/weeks/g, 'w').replace(/,|and/g, ':'))
                         continue
                     }
                     // to change epoch to date format
@@ -109,14 +110,14 @@ function populateMasternodeList() {
             }
             multi.hset(masternodeKey + ':' + key, 'list', mn.toString(), redis.print)
             multi.zadd(masternodeSet, active, masternodeKey + ':' + key, redis.print)
-            multi.exec(function (errors, results) {
-                if (errors) {
-                    console.error(errors)
-                    throw errors
-                }
-                // console.log(results)
-            })
         }
+        multi.exec(function (errors, results) {
+            if (errors) {
+                console.error(errors)
+                throw errors
+            }
+            // console.log(results)
+        })
     });
 }
 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>Energi Vote Tracker</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/dashboard.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+      <button class="navbar-toggler navbar-toggler-right hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="#">Energi Vote Tracker</a>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="./index.html">Proposals <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./masternode.html">Masternodes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="http://explore.energi.network">Explorer</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+
+        <main class="col-sm-9 offset-sm-3 col-md-10 offset-md-2 pt-3" style="margin-left: 10%">
+          <section class="row text-center placeholders">
+            <div class="col-6 col-sm-3 placeholder" style="margin-left: 10%">
+              <h1 id="lastsb"></h1>
+              <h4>Last Super Block</h4>
+            </div>
+            <div class="col-6 col-sm-3 placeholder">
+              <h1 id="nextsb"></h1>
+              <h4>Next Super Block</h4>
+            </div>
+            <div class="col-6 col-sm-3 placeholder">
+              <h1 id="currentb"></h1>
+              <h4>Current Block</h4>
+            </div>
+<!--            <div class="col-6 col-sm-3 placeholder">
+              <h1 id="budget"></h1>
+              <h4>Next Super Block Budget</h4>
+            </div> -->
+          </section>
+
+          <section class="panel panel-default row text-center">
+          <div id="vote" style="margin-left: 10%;"></div>
+          </section>
+
+          <h2>Proposals</h2>
+          <div class="table-responsive">
+            <table class="table table-striped" id="proposals">
+              <thead>
+                <tr>
+                  <th>Proposal</th>
+                  <th>Total Budget</th>
+                  <th>Total Payments</th>
+                  <th>Payments Start</th>
+                  <th>Payments End</th>
+                  <th>Yes Votes</th>
+                  <th>No Votes</th>
+                  <th>Abstain Votes</th>
+                  <th>Vote</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript">
+    // $.fn.dataTable.ext.errMode = 'throw';
+    //TODO: might want to change this
+    var url = "http://localhost:3000"
+    $(document).ready(function(){
+      var table;
+        setTimeout(function(){
+        $.get(url + '/gov/info', function(data, status){
+          $('#lastsb').html(data.result.lastsuperblock)
+          $('#nextsb').html(data.result.nextsuperblock)
+          // $('.age').html(data.age)
+        }), 500});
+
+        setTimeout(function(){
+        $.get(url + '/block/count', function(data, status){
+          $('#currentb').html(data.result)
+        }), 500});
+
+       setTimeout(function(){
+        table = $('#proposals').DataTable( {
+        "processing": true,
+        "serverSide": true,
+        "searching": false,
+        "paging":         true,
+        "sPaginationType":"full",
+        "ajax": url + "/gov/list",
+        "columnDefs": [ {
+        "targets": -1,
+        "data": null,
+        "defaultContent": "<button id='btn'>Vote</button>"
+    } ]
+    } ), 500});
+
+    $('#proposals').on( 'click', '#btn', function () {
+    var data = table.row( $(this).parents('tr') ).data();
+    $('#vote').html("<b>Please copy the following into the debug console of your local wallet to vote for the proposal:</b><br> <p style=' font-family: Consolas, monaco, monospace;'>gobject vote-many " + data[8] + " funding [vote]</p><br>"+"Where <b>vote</b> options are: yes, no and abstain<br><br>")
+    } );
+      }
+    );
+
+
+    </script>
+    <link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/jquery.dataTables.min.css"/>
+    <script type="text/javascript" src="/DataTables/datatables.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.dataTables.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
+

@@ -4,8 +4,14 @@ const redis = require('./lib/redis')
 
 
 var app = express();
+app.use(express.static(__dirname + '/public/views'));
+app.use(express.static(__dirname + '/public/static'));
 
 var superBlockCycle;
+
+app.get('/',function(req,res){
+    res.sendFile('index.html');
+  });
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
