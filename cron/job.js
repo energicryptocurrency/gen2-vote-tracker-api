@@ -16,14 +16,21 @@ client.on("error", function (err) {
 
 
 function populateProposalList() {
-    energiUtil.getSuperBlockCycle(function(blockCycle) {
+    energiUtil.getSuperBlockCycle((blockCycle, err) => {
+        if (err) {
+            console.error(err);
+            //continue
+        }
         superBlockCycle = blockCycle;
         energiUtil.getGovernanceObjectList((err, list) => {
             if (err) {
                 console.error(err);
-            } else if (list)
-                // var govArray = new Array();
-                var multi = client.multi()
+            } //In case we got errors but somehow the list is available, continue: otherwise stop
+            if (!list || !list.result) {
+                return;
+            }
+            // var govArray = new Array();
+            var multi = client.multi()
             var obj = list.result
             for (var key in obj) {
                 isProposal = false
@@ -75,6 +82,9 @@ function populateMasternodeList() {
     energiUtil.getMasternodeList((err, list) => {
         if (err) {
             console.error(err);
+        }
+        if (!list || !list.result) {
+            return;
         }
         var multi = client.multi()
         var obj = list.result
