@@ -14,58 +14,66 @@ client.on("error", function (err) {
     console.error("Error " + err);
 });
 
-const superBlockCycle = energiUtil.getSuperBlockCycle()
 
 function populateProposalList() {
-    energiUtil.getGovernanceObjectList((err, list) => {
+    energiUtil.getSuperBlockCycle((blockCycle, err) => {
         if (err) {
             console.error(err);
-        } 
-        else if (list )
-        // var govArray = new Array();
-        var multi = client.multi()
-        var obj = list.result
-        for (var key in obj) {
-            isProposal = false
-            gobj = obj[key];
-            g = new Array();
-            data = gobj['DataString'];
-            json = JSON.parse(data);
-            for (var i in json) {
-                (function (i) {
-                    item = json[i];
-                    if (item[0] == 'proposal') {
-                        isProposal = true;
-                        let num = (item[1].end_epoch - item[1].start_epoch) / superBlockCycle
-                        g.push(item[1].name + ' ' + '(<a href="' + item[1].url + '">Details</a>)')
-                        g.push(parseInt(item[1].payment_amount) * num)
-                        g.push(num)
-                        let d = new Date(item[1].start_epoch) * 1000
-                        g.push(moment(d).utc().toString())
-                        d = new Date(item[1].end_epoch) * 1000
-                        g.push(moment(d).utc().toString())
-                    } else
-                        return
-                })(i);
-            }
-
-            if (isProposal) {
-                g.push(gobj['YesCount'])
-                g.push(gobj['NoCount'])
-                g.push(gobj['AbstainCount'])
-                g.push(gobj['Hash'])
-                multi.hset(proposalKey + ':' + gobj['Hash'], 'list', g.toString(), redis.print)
-                multi.zadd(proposalTimeSet, item[1].start_epoch, 'proposal:' + gobj['Hash'], redis.print)
-            } else
-                continue;
+            //continue
         }
-        multi.exec(function (errors, results) {
-            if (errors) {
-                console.error(errors)
-                throw errors
+        superBlockCycle = blockCycle;
+        energiUtil.getGovernanceObjectList((err, list) => {
+            if (err) {
+                console.error(err);
+            } //In case we got errors but somehow the list is available, continue: otherwise stop
+            if (!list || !list.result) {
+                return;
             }
-            // console.log(results)
-        })
+            // var govArray = new Array();
+            var multi = client.multi()
+            var obj = list.result
+            for (var key in obj) {
+                isProposal = false
+                gobj = obj[key];
+                g = new Array();
+                data = gobj['DataString'];
+                json = JSON.parse(data);
+                for (var i in json) {
+                    (function(i) {
+                        item = json[i];
+                        if (item[0] == 'proposal') {
+                            isProposal = true;
+                            let num = (item[1].end_epoch - item[1].start_epoch) / superBlockCycle
+                            g.push(item[1].name + ' ' + '(<a href="' + item[1].url + '">Details</a>)')
+                            g.push(parseInt(item[1].payment_amount) * num)
+                            g.push(num)
+                            let d = new Date(item[1].start_epoch) * 1000
+                            g.push(moment(d).utc().toString())
+                            d = new Date(item[1].end_epoch) * 1000
+                            g.push(moment(d).utc().toString())
+                        } else
+                            return
+                    })(i);
+                }
+
+                if (isProposal) {
+                    g.push(gobj['YesCount'])
+                    g.push(gobj['NoCount'])
+                    g.push(gobj['AbstainCount'])
+                    g.push(gobj['Hash'])
+                    multi.hset(proposalKey + ':' + gobj['Hash'], 'list', g.toString(), redis.print)
+                    multi.zadd(proposalTimeSet, item[1].start_epoch, 'proposal:' + gobj['Hash'], redis.print)
+                } else
+                    continue;
+            }
+            multi.exec(function(errors, results) {
+                if (errors) {
+                    console.error(errors)
+                    throw errors
+                }
+                // console.log(results)
+            })
+        });
     });
 }
 
@@ -74,6 +82,9 @@ function populateMasternodeList() {
     energiUtil.getMasternodeList((err, list) => {
         if (err) {
             console.error(err);
+        }
+        if (!list || !list.result) {
+            return;
         }
         var multi = client.multi()
         var obj = list.result
