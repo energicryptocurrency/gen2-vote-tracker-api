@@ -132,10 +132,14 @@ function populateMasternodeList() {
     });
 }
 
-// scheduled job for updating data in redis
-cron.schedule('*/2 * * * *', function () {
+function updateData() {
     populateProposalList()
     populateMasternodeList()
+}
+
+// scheduled job for updating data in redis
+cron.schedule('*/15 * * * *', function () {
+    updateData();
 });
 
-
+updateData(); //Update at start
