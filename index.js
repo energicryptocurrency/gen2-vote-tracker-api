@@ -7,7 +7,6 @@ var app = express();
 app.use(express.static(__dirname + '/public/views'));
 app.use(express.static(__dirname + '/public/static'));
 
-var superBlockCycle;
 
 app.get('/',function(req,res){
     res.sendFile('index.html');
@@ -86,6 +85,5 @@ app.get('/block/count', async function (req, res) {
 
 app.listen(3000, function () {
     console.log('energi-rpc api listening on port 3000!');
-    superBlockCycle = util.getSuperBlockCycle()
 });
 
